@@ -130,7 +130,7 @@ func (c *serverCodec) ReadHeader(m *codec.Message) (err error) {
 		return err
 	}
 
-	m.Endpoint = c.req.Method
+	m.Method = c.req.Method
 
 	// JSON request id can be any JSON value;
 	// RPC package expects uint64.  Translate to
@@ -139,7 +139,7 @@ func (c *serverCodec) ReadHeader(m *codec.Message) (err error) {
 	c.seq++
 	c.pending[c.seq] = c.req.ID
 	c.req.ID = nil
-	m.Id = fmt.Sprintf("%d", c.seq)
+	m.Id = c.seq
 	c.mutex.Unlock()
 
 	return nil
@@ -176,7 +176,7 @@ func (c *serverCodec) Write(m *codec.Message, x interface{}) error {
 	}
 	c.mutex.Unlock()
 
-	if replies, ok := x.(*[]*json.RawMessage); m.Endpoint == "JSONRPC2.Batch" && ok {
+	if replies, ok := x.(*[]*json.RawMessage); m.Method == "JSONRPC2.Batch" && ok {
 		if len(*replies) == 0 {
 			return nil
 		}
